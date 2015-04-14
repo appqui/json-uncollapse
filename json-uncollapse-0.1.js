@@ -1,43 +1,29 @@
-function Show(p) {
-    FormatAndShow(p.GridConfig, $('div[config=GridConfig]'), null, true);
-    FormatAndShow(p.UserConfig, $('div[config=UserConfig]'), null, true);
-}
 
-//function LoadFromLocalStorage(div) {
-//    var lsname = localStorage.CurrentDatabase + '_' + div.attr('config');
-//    var ta = $('textarea', $('div[config=' + div.attr('config') + ']'));
-//    if (localStorage[lsname] != null && JSON.stringify(JSON.parse(localStorage[lsname])) == JSON.stringify(JSON.parse(ta.val())))
-//        ta.val(localStorage[lsname]);
-//}
 
-function TextAreaChange(div) {
-    if (div.target) { div = $(div.target).parents('div[dbname]'); var istarget = true; }
-    //if (!window.firsttime) {
-    //    var lsname = localStorage.CurrentDatabase + '_' + div.attr('config');
-    //    localStorage[lsname] = $('textarea', $('div[config=' + div.attr('config') + ']')).val();
-    //}
 
-    if (istarget) { Restruct(div, false, true); }
-}
 
-function FormatAndShow(json, div, toshow, level1_collapse) {
-    var json = json;
+
+
+var t;
+
+function FormatAndShow(json, div, level1_collapse) {
+    //var json = json;
     var textarea = $("textarea", div);
-
+    t = div;
     var jsonFormatted = GetJsonFormatted(json, level1_collapse);
-    var jsonSplit = SplitJsonFormatted(jsonFormatted);
 
 
     textarea.val(jsonFormatted);
+    textarea.scroll(function () { div.find('.scr')[0].scrollTop = this.scrollTop; });
+    textarea.blur(function () { Restruct(t) });
+
     Restruct(div, true);
-    textarea.scroll(function () { console.log('scroll'); $(this).parents('div:first').find('.scr')[0].scrollTop = this.scrollTop; });
-    textarea.blur(function () { Restruct($('#t'))  });
-    ReCountRowsCols(textarea, jsonSplit);
 }
+
 function GetJsonFormatted(json, level1_collapse) {
     var jsonFormatted;
     if (level1_collapse) {
-        jsonFormatted = "{ \n";
+        jsonFormatted = "{\n";
         for (var k in json) {
             jsonFormatted += "    \"" + k + "\": ";
             if ($.isArray(json[k])) {
@@ -59,61 +45,37 @@ function GetJsonFormatted(json, level1_collapse) {
     }
     return jsonFormatted;
 }
-function SplitJsonFormatted(jsonFormatted) {
-    return jsonFormatted.split(/\r\n|\r|\n/);
-}
 
-function ReCountRowsCols(textarea, jsonSplit) {
-    if ((typeof (jsonSplit) == 'string')) {
-        jsonSplit = SplitJsonFormatted(jsonSplit);
-    }
-    textarea[0].cols = jsonSplit.sort(function (a, b) { return b.length - a.length })[0].length;
+function Restruct(div/*, doLoad, re*/) {
 
-    if (jsonSplit.length > 50) {
-        jsonSplit.length = 50;
-    }
-
-    textarea[0].rows = jsonSplit.length;
-
-    textarea.parents('tr').find('.scr').height($(textarea[0]).height());
-}
-
-function Restruct(div, doLoad, re) {
-    var strs = $('textarea', div).val().split('\n');
-    var str = '';
+    var strs = $('textarea', div).val().split('\n'); // get array of lines
+    var str = ''; // buffer for + and linenumbers
     var kol = 0;
+
+    //generate line numbers and plus/minus for each
     for (var i = 0; i < strs.length; i++) {
-        str += '<span style="margin-right: 10px">' + i + '</span><span i="' + i + '">-</span><br>'; kol = i;
+        str += '<span class="ln">' + i + '</span><span i="' + i + '">-</span><br>'; kol = i;
     }
-    for (var i = 0; i < 10; i++) { str += '<br>'; }
+    str += '<br>';
     $('.scr', div).html(str);
 
-    var arr = []; var ob = {}; var ii = 0;
-    $('.scr [i]', div).show();
     $.each(strs, function (i, n) {
         var plus = (n.indexOf('{') != -1 && n.indexOf('}') != -1);
         if (n.search(/^(\s|\S)*(?!})(\s|\S)*{(\s|\S)*(?!})(\s|\S)*$/) != -1 || plus) {
-            var p = arr.pop();
-            if (p) { p.k = ii; arr.push(p); }
-            arr.push({ l: i }); ii = 0;
             if (plus) { $('.scr [i=' + i + ']', div).html('+'); }
         } else {
             $('.scr [i=' + i + ']', div).hide();
         }
-        ii++;
     });
 
     $('.scr [i]', div).click(function () {
         var i = parseInt($(this).attr('i'));
-        var p = $('#t');
         if ($(this).html() == '-') {
-            Collapse(i, p);
+            Collapse(i, t);
         } else {
-            Uncollapse(i, p);
+            Uncollapse(i, t);
         }
     });
-
-    if (!re) TextAreaChange(div);
 }
 
 function Uncollapse(n, div) {
@@ -138,7 +100,7 @@ function Uncollapse(n, div) {
     if (jsonObj.Url || jsonObj.Table || jsonObj.TableMain || jsonObj.Change) {
         cola[n] = begofstr + GetJsonFormatted(jsonObj, true) + (iscomma ? ',' : '');
     } else {
-        cola[n] = begofstr + JSON.stringify(jsonObj, null, 4) + (iscomma ? ',' : '');
+        cola[n] = begofstr + GetJsonFormatted(jsonObj, false) + (iscomma ? ',' : '');
     }
     var coland = cola[n].split('\n');
     cola[n] = '';
@@ -149,7 +111,6 @@ function Uncollapse(n, div) {
 
     var colaJoined = cola.join('\n');
     ta.val(colaJoined);
-    ReCountRowsCols(ta, colaJoined);
     Restruct(div);
 }
 
@@ -176,10 +137,9 @@ function Collapse(n, div) {
         g += m(cola[pi].match(/{/g));
         pi++;
     }
-    var t = ta.val();
+    var tv = ta.val();
 
-    t = t.replace(colas, cl(colas));
-    ta.val(t);
-    ReCountRowsCols(ta, t);
+    tv = tv.replace(colas, cl(colas));
+    ta.val(tv);
     Restruct(div);
 }

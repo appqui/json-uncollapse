@@ -1,13 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-        <title>Json</title>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
-        <script src="jsonlint.js"></script>
-        <script src="json-uncollapse.js"></script>
-        <script type="text/javascript">
-            var json = { 
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Json</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+    <script src="jsonlint.js"></script>
+    <script src="json-uncollapse-0.1.js"></script>
+
+    <script type="text/javascript">
+            var json = {
                 "TableFiles": "Document",
                 "FilePathColumn": "PathGuid",
                 "FileNameColumn": "DocumentName",
@@ -132,24 +133,37 @@
                 ]
             };
 
-            $(function () {
-                FormatAndShow(json, $('#t'), null, true);
-            });
-        </script>
+            $(function () { FormatAndShow(json, $('.json-collapse'), true); });
+    </script>
 
-        <style>
-            #t > table { width: 100%; }
-            #t > td:first-child { width: 1% }
-        </style>
-    </head>
-    <body>
-        <div id="t">
-            <table>
-                <tr>
-                    <td><div class="scr" style="line-height: 1.30; font-size: 13px; float: left; overflow: hidden; height: 500px"></div></td>
-                    <td><textarea wrap="off" style="resize: none; height: 500px; width: 100%"></textarea></td>
-                </tr>
-            </table>
-        </div>
-    </body>
+    <style>
+        .json-collapse .ln {
+            margin-right: 10px;
+        }
+
+        .json-collapse .scr,
+        .json-collapse textarea {
+            line-height: 1.37;
+            height: 600px;
+        }
+
+        .json-collapse .scr {
+            padding-top: 2px;
+            font-size: 13px;
+            float: left;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .json-collapse textarea {
+            resize: none;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="json-collapse"><div class="scr"></div><textarea wrap="off"></textarea></div>
+
+</body>
 </html>
