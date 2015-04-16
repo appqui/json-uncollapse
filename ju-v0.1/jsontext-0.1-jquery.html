@@ -1,14 +1,14 @@
 ﻿<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-        <title>Json Textarea 0.2</title>
-        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
-        <script src="jsonlint.js"></script>
-        <script src="json-uncollapse-0.2-jquery.js"></script>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Json</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.4.4/jquery.min.js"></script>
+    <script src="../libs/jsonlint.js"></script>
+    <script src="json-uncollapse-0.1.js"></script>
 
-        <script type="text/javascript">
-            var json = { 
+    <script type="text/javascript">
+            var json = {
                 "TableFiles": "Document",
                 "FilePathColumn": "PathGuid",
                 "FileNameColumn": "DocumentName",
@@ -133,34 +133,37 @@
                 ]
             };
 
-            $(function () {
-                var juc = $('#juc').json_uncollapse({
-                    level1when: function (jo) {
-                        return jo.Url || jo.Table || jo.TableMain || jo.Change;
-                    },
-                    json: json
-                });
+            $(function () { FormatAndShow(json, $('.json-collapse'), true); });
+    </script>
 
-                $('#save').click(function () {
-                    var jv = $('#juc').json_uncollapse('val');
-                    try { jsonlint.parse(jv); alert('json is correct'); } catch (e) { alert(e); }
-                });
-            });
-        </script>
+    <style>
+        .json-collapse .ln {
+            margin-right: 10px;
+        }
 
-        <style>
-            .json-collapse .ln { margin-right: 10px }
-            .json-collapse .scr, 
-            .json-collapse textarea { line-height: 1.37; height: 600px; }
-            .json-collapse .scr { padding-top: 2px; font-size: 13px; float: left; overflow: hidden; display: inline-block; }
-            .json-collapse textarea { resize: none; width: 95% }
-        </style>
-    </head>
-    <body>
+        .json-collapse .scr,
+        .json-collapse textarea {
+            line-height: 1.37;
+            height: 600px;
+        }
 
-        <div id="juc"></div>
+        .json-collapse .scr {
+            padding-top: 2px;
+            font-size: 13px;
+            float: left;
+            overflow: hidden;
+            display: inline-block;
+        }
 
-        <button id="save">Save</button>
-        
-    </body>
+        .json-collapse textarea {
+            resize: none;
+            width: 95%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="json-collapse"><div class="scr"></div><textarea wrap="off"></textarea></div>
+
+</body>
 </html>

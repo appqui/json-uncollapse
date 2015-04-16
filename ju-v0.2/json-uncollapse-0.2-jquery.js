@@ -18,7 +18,7 @@
         })
     }
 
-    var JsonUncollapse = (function () {
+    JsonUncollapse = (function () {
         function JsonUncollapse(options) {
             this.options = $.extend({}, this.defaultOptions, options);
         }
@@ -44,6 +44,17 @@
         this.text.val(jsonFormatted);
         this.text.scroll(function () { jo.lines.scrollTop(this.scrollTop); });
         this.text.blur(function () { jo.restruct() });
+        this.text.keyup(function(e){ 
+            if (e.keyCode == 13 || e.keyCode == 8 || e.keyCode == 46) {
+                var now = jo.text.val().match(/\n/g).length;
+                var last = jo.text.data('quantityLines');
+                
+                if (now != last) {
+                    jo.text.data('quantityLines', now);
+                    jo.restruct();
+                }
+            }
+        })
 
         this.restruct();
     }
@@ -75,14 +86,15 @@
     }
 
     jcls.restruct = function () {
+        console.log('restruct');
+
         var jo = this;
         var strs = this.text.val().split('\n'); // get array of lines
         var str = ''; // buffer for + and linenumbers
-        var kol = 0;
 
         //generate line numbers and plus/minus for each
         for (var i = 0; i < strs.length; i++) {
-            str += '<span class="ln">' + i + '</span><span i="' + i + '">-</span><br>'; kol = i;
+            str += '<span class="ln">' + i + '</span><span i="' + i + '">-</span><br>';
         }
 
         var lines = this.lines.html(str + '<br>');
@@ -107,25 +119,32 @@
     }
 
     jcls.collapse = function (n) {
+        // todo remove split
         var tv = this.text.val();
         var cola = tv.split('\n');
-        var g = 0; var pi = n + 1; var colas = cola[pi - 1] + '\n';
-        function m(mm) {
-            return mm == null ? 0 : mm.length;
-        }
-        function cl(s) {
-            var s1i = s.indexOf('\n'); var s1li = s.lastIndexOf('\n');
-            var colpart = s.substr(s1i + 1, s1li - s1i - 1);
-            var newstr = '';
-            $.each(colpart.split('\n'), function (i, n) { newstr += n.trim() });
+        var g = 0; var pi = n + 1;
+        var colas = cola[pi - 1] + '\n';
 
-            return s.substr(0, s1i) + newstr + '\n';
+        function nullOrLength(matchRes) {
+            return matchRes == null ? 0 : matchRes.length;
+        }
+
+        function cl(s) {
+            var s1i = s.indexOf('\n');
+            var s1li = s.lastIndexOf('\n');
+            var colpart = s.substr(s1i + 1, s1li - s1i - 1);
+            var s1com = colpart[colpart.length - 1] == ',' ? 1 : 0;
+            var s1com_s = s1com ? ',' : '';
+            var colpart_nocomma = '{' + colpart.substr(0, colpart.length - s1com);
+            var newstr = JSON.stringify(JSON.parse(colpart_nocomma));
+
+            return s.substr(0, s1i) + newstr.substring(1, newstr.length) + s1com_s + '\n';
         }
 
         while (g != -1) {
             colas += cola[pi] + '\n';
-            g -= m(cola[pi].match(/}/g));
-            g += m(cola[pi].match(/{/g));
+            g -= nullOrLength(cola[pi].match(/}/g));
+            g += nullOrLength(cola[pi].match(/{/g));
             pi++;
         }
 
