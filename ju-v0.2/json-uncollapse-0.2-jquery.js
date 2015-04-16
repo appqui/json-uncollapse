@@ -1,10 +1,10 @@
 
 
 (function ($) {
-    $.fn.json_uncollapse = function (options) {
+    $.fn.json_uncollapse = function (options, setVal) {
         if (typeof options === 'string') {
             var jo = $('.json-collapse', this).data('object');
-            if (options == 'val') { return jo.text.val(); }
+            if (options == 'val') { return setVal ? jo.text.val(setVal) : jo.text.val(); }
         }
 
         return this.each(function () {
@@ -41,18 +41,31 @@
         var jo = this;
         var jsonFormatted = this.format(this.options.json, this.options.level1);
 
+        function ifOtherLinesRestruct() {
+            var now = jo.text.val().match(/\n/g).length;
+            var last = jo.text.data('quantityLines');
+
+            if (now != last) {
+                jo.text.data('quantityLines', now);
+                jo.restruct();
+            }
+        }
+
+        this.root.on('click', '[i]', function () {
+            var i = parseInt($(this).attr('i'));
+            if ($(this).html() == '-') {
+                jo.collapse(i);
+            } else {
+                jo.uncollapse(i);
+            }
+        });
+
         this.text.val(jsonFormatted);
         this.text.scroll(function () { jo.lines.scrollTop(this.scrollTop); });
-        this.text.blur(function () { jo.restruct() });
+        this.text.blur(function () { ifOtherLinesRestruct(); });
         this.text.keyup(function(e){ 
             if (e.keyCode == 13 || e.keyCode == 8 || e.keyCode == 46) {
-                var now = jo.text.val().match(/\n/g).length;
-                var last = jo.text.data('quantityLines');
-                
-                if (now != last) {
-                    jo.text.data('quantityLines', now);
-                    jo.restruct();
-                }
+                ifOtherLinesRestruct();
             }
         })
 
@@ -77,8 +90,7 @@
 
                 jsonFormatted += ",\n";
             }
-            jsonFormatted = jsonFormatted.substring(0, jsonFormatted.length - 2);
-            jsonFormatted += "\n}";
+            jsonFormatted = jsonFormatted.substring(0, jsonFormatted.length - 2) + "\n}";
         } else {
             jsonFormatted = JSON.stringify(json, null, 4);
         }
@@ -86,8 +98,6 @@
     }
 
     jcls.restruct = function () {
-        console.log('restruct');
-
         var jo = this;
         var strs = this.text.val().split('\n'); // get array of lines
         var str = ''; // buffer for + and linenumbers
@@ -105,15 +115,6 @@
                 if (plus) { $('[i=' + i + ']', lines).html('+'); }
             } else {
                 $('[i=' + i + ']', lines).hide();
-            }
-        });
-
-        $('[i]', lines).click(function () {
-            var i = parseInt($(this).attr('i'));
-            if ($(this).html() == '-') {
-                jo.collapse(i);
-            } else {
-                jo.uncollapse(i);
             }
         });
     }
